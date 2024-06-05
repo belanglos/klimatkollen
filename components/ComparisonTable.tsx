@@ -1,6 +1,4 @@
-import {
-  Fragment, useEffect, useState,
-} from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import {
@@ -29,7 +27,7 @@ const StyledTable = styled.table`
   @media only screen and (${devices.smallMobile}) {
     font-size: 0.85em;
   }
-  
+
   @media only screen and (${devices.tablet}) {
     --margin: 8px;
     font-size: 1em;
@@ -118,8 +116,13 @@ const TableHeaderInner = styled.span`
   grid-template-columns: 1fr max-content;
 `
 
-const TableRow = styled.tr<{ interactive?: boolean, showBorder?: boolean, isExpanded?: boolean }>`
-  border-bottom: ${({ showBorder, theme }) => (showBorder ? `1px solid ${theme.newColors.blue3}` : '')};
+const TableRow = styled.tr<{
+  interactive?: boolean
+  showBorder?: boolean
+  isExpanded?: boolean
+}>`
+  border-bottom: ${({ showBorder, theme }) =>
+    showBorder ? `1px solid ${theme.newColors.blue3}` : ''};
   cursor: ${({ interactive }) => (interactive ? 'pointer' : '')};
   background: ${({ isExpanded, theme }) => (isExpanded ? theme.newColors.black1 : '')};
   z-index: 10;
@@ -140,11 +143,16 @@ type TableProps<T extends object> = {
 /**
  * Make sure the first column has an id, and prepare default sorting.
  */
-function prepareColumnsForDefaultSorting<T extends object>(columns: TableProps<T>['columns']) {
+function prepareColumnsForDefaultSorting<T extends object>(
+  columns: TableProps<T>['columns'],
+) {
   const preparedColumns = columns[0].id
     ? columns
-    // @ts-expect-error accessorKey does exist, but there's a type error somewhere.
-    : [{ ...columns[0], id: (columns[0].accessorKey).replace('.', '_') }, ...columns.slice(1)]
+    : // @ts-expect-error accessorKey does exist, but there's a type error somewhere.
+      [
+        { ...columns[0], id: columns[0].accessorKey.replace('.', '_') },
+        ...columns.slice(1),
+      ]
 
   const defaultSorting = [{ id: preparedColumns[0].id!, desc: false }]
 
@@ -178,6 +186,9 @@ function ComparisonTable<T extends object>({
     return index > 1
   }
 
+  preparedColumns[0].enableMultiSort = true
+  preparedColumns[1].enableMultiSort = true
+
   const table = useReactTable({
     data,
     columns: preparedColumns,
@@ -189,6 +200,8 @@ function ComparisonTable<T extends object>({
     getExpandedRowModel: getExpandedRowModel(),
     enableSortingRemoval: false,
   })
+
+  console.log(table.getState().sorting)
 
   const handleRowClick = (row: Row<T>) => {
     if (dataType === 'municipalities') {
@@ -230,10 +243,14 @@ function ComparisonTable<T extends object>({
                   onKeyDown={header.column.getToggleSortingHandler()}
                 >
                   <TableHeaderInner data-sorting={header.column.getIsSorted()}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                     {currentSort ? (
                       <SortingIcon
-                        style={{ transform: `scale(0.6) rotate(${currentSort === 'desc' ? '' : '-'}90deg)` }}
+                        style={{
+                          transform: `scale(0.6) rotate(${currentSort === 'desc' ? '' : '-'}90deg)`,
+                        }}
                       />
                     ) : null}
                   </TableHeaderInner>
@@ -256,7 +273,10 @@ function ComparisonTable<T extends object>({
                 aria-expanded={isRowExpanded}
               >
                 {row.getVisibleCells().map((cell, index) => (
-                  <TableData key={cell.id} className={isDataColumn(index) ? 'data-column' : ''}>
+                  <TableData
+                    key={cell.id}
+                    className={isDataColumn(index) ? 'data-column' : ''}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableData>
                 ))}
